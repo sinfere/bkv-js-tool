@@ -6,6 +6,7 @@
       :rowKey="record => record.index"
       :dataSource="data"
       :pagination="false"
+      size="small"
     />
   </div>
 </template>
