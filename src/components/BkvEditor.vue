@@ -1,6 +1,6 @@
 <template>
     <div class="bkv-editor">
-        <a-button type="primary" @click="handleAddItem" class="add-item" size="small">ADD</a-button>
+        <a-button type="primary" @click="handleAddItem" class="add-item" size="small">ADD KV</a-button>
         <div class="clear-10"></div>
         <div v-for="(item, index) of itemList" :key="index">
             <div class="bkv-item">
