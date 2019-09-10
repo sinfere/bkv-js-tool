@@ -1,0 +1,269 @@
+@mixin clear($size) {
+    clear: both;
+    height: $size;
+    font-size: 0;
+    float: none;
+    overflow: hidden;
+}
+
+.clear-0 {
+    @include clear(0px);
+}
+
+.clear-5 {
+    @include clear(5px);
+}
+
+.clear-10 {
+    @include clear(10px);
+}
+
+.clear-15 {
+    @include clear(15px);
+}
+
+.clear-20 {
+    @include clear(20px);
+}
+
+.clear-25 {
+    @include clear(25px);
+}
+
+.clear-30 {
+    @include clear(30px);
+}
+
+.clear-40 {
+    @include clear(40px);
+}
+
+.clear-50 {
+    @include clear(50px);
+}
+
+.clear-100 {
+    @include clear(100px);
+}
+
+.fl {
+    float: left;
+}
+
+.fr {
+    float: right;
+}
+
+@mixin pt($size) {
+    padding-top: $size;
+}
+
+.pt-0 {
+    @include pt(0px)
+}
+
+.pt-3 {
+    @include pt(3px)
+}
+
+.pt-6 {
+    @include pt(6px)
+}
+
+.pt-15 {
+    @include pt(15px)
+}
+
+@mixin pl($size) {
+    padding-left: $size;
+}
+
+.pl-0 {
+    @include pl(0px)
+}
+
+.pl-10 {
+    @include pl(10px)
+}
+
+.pl-15 {
+    @include pl(15px)
+}
+
+@mixin pr($size) {
+    padding-right: $size;
+}
+
+.pr-0 {
+    @include pr(0px)
+}
+
+.pr-10 {
+    @include pr(10px)
+}
+
+.pr-15 {
+    @include pr(15px)
+}
+
+.pr-30 {
+    @include pr(30px)
+}
+
+.form-control {
+    width: 100%;
+}
+
+.hide {
+    display: none!important;
+}
+
+.show {
+    display: block!important;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.pull-right {
+    float: right;
+}
+
+.pull-left {
+    float: left;
+}
+
+.flex-container {
+    display: -webkit-box;
+    /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-box;
+    /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-flexbox;
+    /* TWEENER - IE 10 */
+    display: -webkit-flex;
+    /* NEW - Chrome */
+    display: flex;
+    /* NEW, Spec - Opera 12.1, Firefox 20+ */
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -moz-box-orient: vertical;
+    -moz-box-direction: normal;
+    flex-direction: column;
+    -webkit-flex-direction: column;
+    height: 100%;
+}
+
+.flex-content {
+    -webkit-box-flex: 1;
+    /* OLD - iOS 6-, Safari 3.1-6 */
+    -moz-box-flex: 1;
+    /* OLD - Firefox 19- */
+    /* width: 20%; */
+    /* For old syntax, otherwise collapses. */
+    /* 见本文底部评论@Lawrence */
+    -webkit-flex: 1;
+    /* Chrome */
+    -ms-flex: 1;
+    /* IE 10 */
+    flex: 1;
+    /* NEW, Spec - Opera 12.1, Firefox 20+ */
+    overflow: auto;
+}
+
+.flex-footer {
+    display: table;
+    width: 100%;
+    padding: 0 30px;
+    height: 60px;
+    background: #fff;
+    .flex-footer-content {
+        display: table-cell;
+        vertical-align: middle;
+    }
+}
+
+@mixin ml($size) {
+    margin-left: $size;
+}
+
+.ml-5 {
+    @include ml(5px)
+}
+
+.ml-8 {
+    @include ml(8px)
+}
+
+.ml-10 {
+    @include ml(10px)
+}
+
+.ml-100 {
+    @include ml(100px)
+}
+
+@mixin mr($size) {
+    margin-right: $size;
+}
+
+.mr-5 {
+    @include mr(5px)
+}
+
+.mr-20 {
+    @include mr(20px)
+}
+
+.mr-30 {
+    @include mr(30px)
+}
+
+@mixin mt($size) {
+    margin-top: $size;
+}
+
+.mt-30 {
+    @include mt(30px)
+}
+
+.no-padding {
+    padding: 0!important;
+}
+
+.hr-line-dashed {
+    border-top: 1px dashed #e7eaec;
+    color: #ffffff;
+    background-color: #ffffff;
+    height: 1px;
+    margin: 20px 0;
+}
+
+.link {
+    cursor: pointer;
+    color: #337ab7;
+    &:hover {
+        color: #23527c;
+    }
+}
+
+.consolas {
+    font-family: Consolas, "Courier New";
+}
+
+.clear-fix {
+    &:after {
+        display: block;
+        content: '';
+        clear: both;
+        height: 0;
+    }
+}
