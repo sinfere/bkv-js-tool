@@ -247,6 +247,14 @@ function parseBuffer(buffer, type) {
       return dv.getInt32(0);
     }
 
+    case 'int64': {
+      return dv.getBigInt64(0);
+    }
+
+    case 'uint64': {
+      return dv.getBigUint64(0);
+    }
+
     case 'float32': {
       return dv.getFloat32(0);
     }
