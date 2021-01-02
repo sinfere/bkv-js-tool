@@ -207,6 +207,9 @@ export default {
           BKV.validateSchema(items);
 
           this.saveSchema({id, name, items});
+          setTimeout(() => {
+            this.activeFirstTab();
+          }, 500);
         } catch (e) {
           console.log(e);
           this.$message.error(`import fail: ${e.message}`)
