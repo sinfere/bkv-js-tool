@@ -12,7 +12,7 @@ cd container
 
 image=di.sinfere.com/app/bkv/js-tool
 
-docker build --rm -t ${image} .
+docker buildx build --platform linux/amd64  --rm -t ${image} .
 docker push ${image}
 
-/bin/rm -rf container/app/*
+/bin/rm -rf app/*
