@@ -81,6 +81,7 @@ export default {
       if (this.bkvHex === '') {
         return;
       }
+      this.bkvHex = this.bkvHex.replace(/\s*/g,"")
 
       let bkv;
       try {

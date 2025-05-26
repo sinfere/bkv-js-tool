@@ -1,40 +1,29 @@
 <template>
-  <div class="schema">
-    <a-button @click="showImport" type="primary" size="small" class="mr-5">ADD</a-button>
-    <a-upload name="import" :beforeUpload="beforeSchemaUpload" :showUploadList="false" size="small" class="mr-5">
-      <a-button type="primary" size="small">IMPORT</a-button>
-    </a-upload>
-    <a-button @click="exportSchema" type="primary" size="small" class="mr-5">EXPORT</a-button>
-    <a-button @click="del" type="danger" size="small" class="mr-5">DEL</a-button>
+  <div class="unpack">
+    <a-textarea placeholder="BKV" :rows="4" v-model="bkvHex" @keyup.native="parse" @change="parse" @blur="parse"/>
     <div class="clear-10"></div>
-    <a-tabs
-      tab-position="left"
-      ref="tab"
-      @change="onTabChange"
-      :active-key="activeTabKey"
-    >
-      <a-tab-pane v-for="s in schemas" :key="s.id" :tab="s.name">
-        <bkv-schema-editor :schema="s"></bkv-schema-editor>
-      </a-tab-pane>
-    </a-tabs>
-    <div class="clear-10"></div>
+    <div class="fr">
+      <span class="mr-5">CUT START</span>
+      <a-input-number v-model="cutStart"  size="small"/>
+      <span class="mr-5 ml-5">CUT END</span>
+      <a-input-number v-model="cutEnd"  size="small"/>
 
-    <a-modal v-model="importDialogVisible" title="ADD SCHEMA" @ok="handleImport"
-             @cancel="importDialogVisible = false">
-      <a-form-model :model="importSchemaForm" ref="importSchemaForm" :rules="importSchemaFormRules"
-                    :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
-        <a-form-model-item label="Id" prop="id">
-          <a-input v-model="importSchemaForm.id"/>
-        </a-form-model-item>
-        <a-form-model-item label="Name" prop="name">
-          <a-input v-model="importSchemaForm.name"/>
-        </a-form-model-item>
-        <a-form-model-item label="Items(JSON)" prop="items">
-          <a-input v-model="importSchemaForm.items" type="textarea" :placeholder="importSchemaItemsPlaceHolder" />
-        </a-form-model-item>
-      </a-form-model>
-    </a-modal>
+      <a-button @click="cut" type="primary"  size="small" class="ml-5">CUT</a-button>
+    </div>
+    <div class="clear-5"></div>
 
+    <a-divider>UNPACK RESULT</a-divider>
+    <div class="fr">
+      <span class="mr-5">USING SCHEMA</span>
+      <a-select v-model="schemaId" @change="parse" size="small" style="width: 100px" >
+        <a-select-option v-for="s in schemas" :key="s.id" :value="s.id">
+          {{s.name}}
+        </a-select-option>
+      </a-select>
+    </div>
+
+    <div class="clear-20"></div>
+    <a-table :columns="columns" :rowKey="record => record.key" :dataSource="data" :pagination="false" size="small" />
   </div>
 </template>
 
@@ -42,210 +31,107 @@
 
 import BKV from '../core/bkv'
 import {mapState, mapActions, mapGetters} from 'vuex'
-import bkvSchemaEditor from '@/components/bkv-schema-editor'
 
 const columns = [
-  {
-    title: 'KEY',
-    dataIndex: 'key_label',
-    width: '100px',
-  },
-  {
-    title: 'VALUE TYPE',
-    dataIndex: 'value_type',
-    width: '100px',
-  },
-  {
-    title: 'KEY NAME',
-    dataIndex: 'key_name',
-  },
-
+  { title: 'KEY LEN', dataIndex: 'key_len', width: '100px', },
+  { title: 'KEY TYPE', dataIndex: 'key_type', width: '100px', },
+  { title: 'KEY', dataIndex: 'key', width: '100px', },
+  { title: 'KEY NAME', dataIndex: 'key_name', width: '260px', },
+  { title: 'VALUE', dataIndex: 'value', }
 ];
 
 export default {
   name: 'unpack',
-  components: {bkvSchemaEditor},
   data() {
     return {
+      bkvHex: '040130fc19040137000304013b000902015408017c112233445566070170312e302e31',
+      data: [],
       columns,
+      schemaId: '',
 
-      activeTabKey: '',
-
-      importDialogVisible: false,
-      importSchemaForm: {
-        id: '',
-        name: '',
-        items: '',
-      },
-      importSchemaFormRules: {
-        id: [{required: true, message: 'Required', trigger: 'blur'},],
-        name: [{required: true, message: 'Required', trigger: 'blur'},],
-      },
-      importSchemaItemsPlaceHolder: '[{"key":1,"value_type":"uint8","key_name":"type"}]'
+      cutStart: 8,
+      cutEnd: 6,
     }
   },
+
   computed: {
     ...mapGetters('schema', {
       schemas: 'getAllSchemas',
     })
   },
+
   mounted: function () {
-    console.log('schemas', this.schemas);
-    this.activeFirstTab();
+    console.log(this.bkvHex);
+    this.parse();
   },
+
   methods: {
-    ...mapActions('schema', [
-      'saveSchema',
-      'deleteSchema',
-    ]),
-
-    activeFirstTab() {
-      if (this.schemas.length > 0) {
-        this.activeTabKey = this.schemas[0].id;
-      }
-    },
-
-    add() {
-      console.log(this.$store.state.schema)
-      this.saveSchema({id: 'bkv-20015', name: '20015', items: testSchemaItems});
-      this.activeFirstTab();
-    },
-
-    del() {
-      this.deleteSchema(this.activeTabKey);
-      this.activeFirstTab();
-    },
-
-    onTabChange(key) {
-      console.log("tab change")
-      console.log(arguments)
-      this.activeTabKey = key;
-    },
-
-    showImport() {
-      this.importSchemaForm.id = '';
-      this.importSchemaForm.name = '';
-      this.importSchemaForm.items = '';
-
-      this.importDialogVisible = true;
-    },
-
-    handleImport() {
-      this.$refs.importSchemaForm.validate(valid => {
-        if (valid) {
-
-          let id = this.importSchemaForm.id;
-          let name = this.importSchemaForm.name;
-          let items;
-          try {
-            let itemsJson = this.importSchemaForm.items;
-            if (itemsJson === '') {
-              itemsJson = '[]';
-            }
-            items = JSON.parse(itemsJson);
-          } catch (e) {
-            this.$message.error(`parse items fail: ${e.toString()}`);
-            return
-          }
-
-          try {
-            BKV.validateSchema(items)
-          } catch (e) {
-            this.$message.error(`validate items fail: ${e.toString()}`);
-            return
-          }
-
-          this.saveSchema({id: id, name: name, items: items});
-          this.importDialogVisible = false;
-        } else {
-          console.log('error submit!!');
-          return false;
-        }
-      });
-    },
-
-    edit() {
-
-    },
-
-    importSchema() {
-
-    },
-
-    beforeSchemaUpload(file, fileList) {
-      console.log('beforeSchemaUpload');
-      console.log(arguments);
-
-      if (!file) {
-        return false;
-      }
-
-      console.log("read file...");
-      let reader = new FileReader();
-      reader.readAsText(file, "UTF-8");
-      reader.onload = e => {
-        let content = e.target.result;
-        try {
-          let schema = JSON.parse(content);
-          if (!schema || typeof schema !== 'object') {
-            this.$message.error(`invalid schema`)
-            return
-          }
-          let id = schema.id;
-          if (!id || typeof id !== 'string') {
-            this.$message.error(`invalid schema id`)
-            return
-          }
-
-          let name = schema.name;
-          if (!name || typeof name !== 'string') {
-            this.$message.error(`invalid schema name`)
-            return
-          }
-
-          let items = schema.items;
-          BKV.validateSchema(items);
-
-          this.saveSchema({id, name, items});
-          setTimeout(() => {
-            this.activeFirstTab();
-          }, 500);
-        } catch (e) {
-          console.log(e);
-          this.$message.error(`import fail: ${e.message}`)
-        }
-      }
-      reader.onerror = function (e) {
-        this.$message.error(`read file fail: ${e}`)
-      }
-
-      return false;
-    },
-
-    exportSchema() {
-      let schema = this.schemas.find(s => s.id === this.activeTabKey);
-      if (!schema) {
+    parse() {
+      this.data = [];
+      if (this.bkvHex === '') {
         return;
       }
+      this.bkvHex = this.bkvHex.replace(/\s*/g,"")
 
-      const data = JSON.stringify(schema)
-      const blob = new Blob([data], {type: 'text/plain'})
-      const e = document.createEvent('MouseEvents');
-      const a = document.createElement('a');
-      a.download = `bkv-schema-${schema.name}.json`;
-      a.href = window.URL.createObjectURL(blob);
-      a.dataset.downloadurl = ['text/json', a.download, a.href].join(':');
-      e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-      a.dispatchEvent(e);
-      a.remove();
+      let bkv;
+      try {
+        let result = BKV.BKV.unpack(BKV.hexToBuffer(this.bkvHex));
+        console.log('parse result', result);
+        if (result.code !== 0) {
+          this.$message.error(`parse bkv fail: code=${result.code}`)
+          return;
+        }
+        bkv = result.bkv;
+      } catch (e) {
+        this.$message.error(`parse bkv err: ${e}`)
+      }
+
+      let schema = this.schemas.find(s => s.id === this.schemaId);
+      let schemaItems = schema && schema.items;
+
+      let items = bkv.items();
+      for (let i in items) {
+        let item = items[i];
+        console.log(item);
+        let rawKey = item.key();
+        let key = rawKey;
+        if (!item.isStringKey()) {
+          key = '0x' + key.toString(16).toUpperCase();
+        }
+
+        let valueType = BKV.getValueType(rawKey, schemaItems);
+
+        let value = BKV.bufferToHex(item.value()).toUpperCase();
+        if (schemaItems) {
+          value = bkv.parse(rawKey, schemaItems)
+          if (value && valueType !== 'string') {
+            value = value + ` (${BKV.bufferToHex(item.value()).toUpperCase()})`
+          }
+        }
+
+        let key_name = BKV.getKeyName(rawKey, schemaItems);
+
+        this.data.push({
+          key: key,
+          key_name: key_name,
+          key_len: item.keyLength(),
+          key_type: item.isStringKey() ? 'STRING' : 'NUMBER',
+          value: value,
+        });
+      }
+      console.log(this.data);
     },
+    cut() {
+      this.bkvHex = this.bkvHex.slice(this.cutStart, this.bkvHex.length - this.cutEnd);
+      console.log('this.bkvHex:', this.bkvHex)
+      this.parse();
+    }
   }
 }
-
 </script>
 
 <style scoped lang="scss">
-.schema {
+.unpack {
   /*padding: 20px;*/
 
   width: 900px;

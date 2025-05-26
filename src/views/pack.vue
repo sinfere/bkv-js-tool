@@ -1,6 +1,6 @@
 <template>
   <div class="pack">
-    <bkv-editor class="bkv-editor-holder" :keyList="keyList"/>
+    <bkv-editor class="bkv-editor-holder"/>
   </div>
 </template>
 
