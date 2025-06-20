@@ -1,8 +1,18 @@
 <template>
   <div class="unpack">
     <a-textarea placeholder="BKV" :rows="4" v-model="bkvHex" @keyup.native="parse" @change="parse" @blur="parse"/>
-    <a-divider>UNPACK RESULT</a-divider>
+    <div class="clear-10"></div>
+    <div class="fr">
+      <span class="mr-5">CUT START</span>
+      <a-input-number v-model="cutStart"  size="small"/>
+      <span class="mr-5 ml-5">CUT END</span>
+      <a-input-number v-model="cutEnd"  size="small"/>
+
+      <a-button @click="cut" type="primary"  size="small" class="ml-5">CUT</a-button>
+    </div>
     <div class="clear-5"></div>
+
+    <a-divider>UNPACK RESULT</a-divider>
     <div class="fr">
       <span class="mr-5">USING SCHEMA</span>
       <a-select v-model="schemaId" @change="parse" size="small" style="width: 100px" >
@@ -13,12 +23,7 @@
     </div>
 
     <div class="clear-20"></div>
-    <a-table :columns="columns"
-             :rowKey="record => record.key"
-             :dataSource="data"
-             :pagination="false"
-             size="small"
-    />
+    <a-table :columns="columns" :rowKey="record => record.key" :dataSource="data" :pagination="false" size="small" />
   </div>
 </template>
 
@@ -28,30 +33,12 @@ import BKV from '../core/bkv'
 import {mapState, mapActions, mapGetters} from 'vuex'
 
 const columns = [
-  {
-    title: 'KEY LEN',
-    dataIndex: 'key_len',
-    width: '100px',
-  },
-  {
-    title: 'KEY TYPE',
-    dataIndex: 'key_type',
-    width: '100px',
-  },
-  {
-    title: 'KEY',
-    dataIndex: 'key',
-    width: '100px',
-  },
-  {
-    title: 'KEY NAME',
-    dataIndex: 'key_name',
-    width: '260px',
-  },
-  {
-    title: 'VALUE',
-    dataIndex: 'value',
-  }];
+  { title: 'KEY LEN', dataIndex: 'key_len', width: '100px', },
+  { title: 'KEY TYPE', dataIndex: 'key_type', width: '100px', },
+  { title: 'KEY', dataIndex: 'key', width: '100px', },
+  { title: 'KEY NAME', dataIndex: 'key_name', width: '260px', },
+  { title: 'VALUE', dataIndex: 'value', }
+];
 
 export default {
   name: 'unpack',
@@ -61,6 +48,9 @@ export default {
       data: [],
       columns,
       schemaId: '',
+
+      cutStart: 8,
+      cutEnd: 6,
     }
   },
 
@@ -81,6 +71,7 @@ export default {
       if (this.bkvHex === '') {
         return;
       }
+      this.bkvHex = this.bkvHex.replace(/\s*/g,"")
 
       let bkv;
       try {
@@ -129,6 +120,11 @@ export default {
         });
       }
       console.log(this.data);
+    },
+    cut() {
+      this.bkvHex = this.bkvHex.slice(this.cutStart, this.bkvHex.length - this.cutEnd);
+      console.log('this.bkvHex:', this.bkvHex)
+      this.parse();
     }
   }
 }

@@ -7,6 +7,7 @@
     <a-button @click="exportSchema" type="primary" size="small" class="mr-5">EXPORT</a-button>
     <a-button @click="del" type="danger" size="small" class="mr-5">DEL</a-button>
     <div class="clear-10"></div>
+
     <a-tabs
       tab-position="left"
       ref="tab"
@@ -19,10 +20,8 @@
     </a-tabs>
     <div class="clear-10"></div>
 
-    <a-modal v-model="importDialogVisible" title="ADD SCHEMA" @ok="handleImport"
-             @cancel="importDialogVisible = false">
-      <a-form-model :model="importSchemaForm" ref="importSchemaForm" :rules="importSchemaFormRules"
-                    :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
+    <a-modal v-model="importDialogVisible" title="ADD SCHEMA" @ok="handleImport" @cancel="importDialogVisible = false">
+      <a-form-model :model="importSchemaForm" ref="importSchemaForm" :rules="importSchemaFormRules" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
         <a-form-model-item label="Id" prop="id">
           <a-input v-model="importSchemaForm.id"/>
         </a-form-model-item>
