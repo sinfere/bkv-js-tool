@@ -227,7 +227,6 @@ function parseBuffer(buffer, type) {
     }
 
     case 'int8': {
-      dv.setInt8(0, value);
       return dv.getInt8(0);
     }
 
@@ -616,16 +615,20 @@ class BKV {
     }
   }
 
-  parse(key, schema) {
+  parse(key, value, schema) {
     let valueType = getValueType(key, schema);
-    let value = this.get(key);
+    // let value = this.get(key);
     if (value === undefined) {
       return;
     }
 
-    console.log(key, valueType)
+    console.log('key:', key, `(0x${key.toString(16)})`, valueType, 'value:', value)
 
-    return parseBuffer(value, valueType);
+    try {
+      return parseBuffer(value, valueType);
+    } catch (error) {
+      return bufferToHex(value).toUpperCase() + ` (${error.toString()})`;
+    }
   }
 
   dump() {

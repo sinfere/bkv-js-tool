@@ -15,7 +15,7 @@
     <a-divider>UNPACK RESULT</a-divider>
     <div class="fr">
       <span class="mr-5">USING SCHEMA</span>
-      <a-select v-model="schemaId" @change="parse" size="small" style="width: 100px" >
+      <a-select v-model="schemaId" @change="parse" size="small" style="width: 100px" allowClear placeholder="Select">
         <a-select-option v-for="s in schemas" :key="s.id" :value="s.id">
           {{s.name}}
         </a-select-option>
@@ -23,7 +23,8 @@
     </div>
 
     <div class="clear-20"></div>
-    <a-table :columns="columns" :rowKey="record => record.key" :dataSource="data" :pagination="false" size="small" />
+    <a-table :columns="columns" :rowKey="(record,index) => index" :dataSource="data" :pagination="false" size="small" />
+    <div class="clear-20"></div>
   </div>
 </template>
 
@@ -32,22 +33,13 @@
 import BKV from '../core/bkv'
 import {mapState, mapActions, mapGetters} from 'vuex'
 
-const columns = [
-  { title: 'KEY LEN', dataIndex: 'key_len', width: '100px', },
-  { title: 'KEY TYPE', dataIndex: 'key_type', width: '100px', },
-  { title: 'KEY', dataIndex: 'key', width: '100px', },
-  { title: 'KEY NAME', dataIndex: 'key_name', width: '260px', },
-  { title: 'VALUE', dataIndex: 'value', }
-];
-
 export default {
   name: 'unpack',
   data() {
     return {
-      bkvHex: '040130fc19040137000304013b000902015408017c112233445566070170312e302e31',
+      bkvHex: '040101103b0a01020000000000000000090103822506200009880f02026e48424c4632303434303535350f02026e48424c4632303434303535360f02026e48424c4632303434303635350f02026e48424c4632303434303635360f02026e48424c4632303434303638390f02026e48424c4632303434303639300f02026e48424c4632303434303937310f02026e48424c463230343430393732',
       data: [],
-      columns,
-      schemaId: '',
+      schemaId: undefined,
 
       cutStart: 8,
       cutEnd: 6,
@@ -57,7 +49,30 @@ export default {
   computed: {
     ...mapGetters('schema', {
       schemas: 'getAllSchemas',
-    })
+    }),
+    columns() {
+      let columns = [];
+      if (this.schemaId) {
+        columns.push(
+          { title: 'KEY TYPE', dataIndex: 'key_type', width: '80px', },
+          { title: 'KEY LEN', dataIndex: 'key_len', width: '80px', },
+          { title: 'KEY', dataIndex: 'key', width: '80px', },
+          { title: 'KEY NAME', dataIndex: 'key_name', width: '240px', },
+          { title: 'VALUE TYPE', dataIndex: 'value_type', width: '96px' },
+          { title: 'VALUE', dataIndex: 'value', },
+          { title: 'HEX VALUE', dataIndex: 'hex_value', }
+        );
+      } else {
+        columns.push(
+          { title: 'KEY TYPE', dataIndex: 'key_type', width: '100px', },
+          { title: 'KEY LEN', dataIndex: 'key_len', width: '100px', },
+          { title: 'KEY', dataIndex: 'key', width: '100px', },
+          { title: 'KEY NAME', dataIndex: 'key_name', width: '260px', },
+          { title: 'VALUE', dataIndex: 'value', },
+        );
+      }
+      return columns;
+    }
   },
 
   mounted: function () {
@@ -76,7 +91,7 @@ export default {
       let bkv;
       try {
         let result = BKV.BKV.unpack(BKV.hexToBuffer(this.bkvHex));
-        console.log('parse result', result);
+        console.log('[parse] result', result);
         if (result.code !== 0) {
           this.$message.error(`parse bkv fail: code=${result.code}`)
           return;
@@ -92,24 +107,22 @@ export default {
       let items = bkv.items();
       for (let i in items) {
         let item = items[i];
-        console.log(item);
+        console.log('[parse] item:', item);
         let rawKey = item.key();
         let key = rawKey;
         if (!item.isStringKey()) {
           key = '0x' + key.toString(16).toUpperCase();
         }
 
-        let valueType = BKV.getValueType(rawKey, schemaItems);
+        let value_type = BKV.getValueType(rawKey, schemaItems);
 
-        let value = BKV.bufferToHex(item.value()).toUpperCase();
+        let value = BKV.bufferToHex(item.value()).toUpperCase(); // HEX VALUE
         if (schemaItems) {
-          value = bkv.parse(rawKey, schemaItems)
-          if (value && valueType !== 'string') {
-            value = value + ` (${BKV.bufferToHex(item.value()).toUpperCase()})`
-          }
+          value = bkv.parse(rawKey, item.value(), schemaItems).toString(); // 解析后 VALUE
         }
 
         let key_name = BKV.getKeyName(rawKey, schemaItems);
+        let hex_value = BKV.bufferToHex(item.value()).toUpperCase();
 
         this.data.push({
           key: key,
@@ -117,9 +130,11 @@ export default {
           key_len: item.keyLength(),
           key_type: item.isStringKey() ? 'STRING' : 'NUMBER',
           value: value,
+          value_type: value_type,
+          hex_value: hex_value,
         });
       }
-      console.log(this.data);
+      console.log('[parse] data:', this.data);
     },
     cut() {
       this.bkvHex = this.bkvHex.slice(this.cutStart, this.bkvHex.length - this.cutEnd);
@@ -134,7 +149,8 @@ export default {
 .unpack {
   /*padding: 20px;*/
 
-  width: 900px;
+  width: 1000px;
+  max-width: 100%;
   margin: auto;
 
   .ant-table-thead > tr > th, .ant-table-tbody > tr > td {
